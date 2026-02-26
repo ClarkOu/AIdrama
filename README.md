@@ -1,169 +1,170 @@
-# AIdrama — AI 短剧自动生成工具
+[**中文文档**](./README_zh.md) | English
 
-> 只需用大白话说出你的故事想法，AI 自动生成剧本、分镜、角色图、视频片段，最终合成完整短剧 MP4。
+# AIdrama — AI Short Drama Auto-Generation Tool
+
+> Just describe your story idea in plain words — AI automatically generates scripts, storyboards, character images, video clips, and composites them into a complete short drama MP4.
 
 ---
 
-## 快速启动
+## Quick Start
 
-### 前置准备
+### Prerequisites
 
-| 工具 | 版本 | 安装 |
-|------|------|------|
+| Tool | Version | Install |
+|------|---------|---------|
 | Python | 3.11+ | [python.org](https://python.org) |
 | Node.js | 18+ | [nodejs.org](https://nodejs.org) |
-| FFmpeg | 任意 | `brew install ffmpeg` (macOS) |
+| FFmpeg | any | `brew install ffmpeg` (macOS) |
 
-### 1. 克隆 & 安装依赖
+### 1. Clone & Install Dependencies
 
 ```bash
 git clone https://github.com/ClarkOu/AIvideo.git
 cd AIvideo
 
-# 后端
+# Backend
 cd backend
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-# 前端
+# Frontend
 cd ../frontend
 npm install
 ```
 
-### 2. 配置 API Key
+### 2. Configure API Keys
 
 ```bash
 cp .env.example .env
-# 编辑 .env，填写以下必要配置：
+# Edit .env and fill in the required keys:
 ```
 
-| 配置项 | 必填 | 说明 |
-|--------|------|------|
-| `LLM_API_KEY` | ✅ | LLM 文字生成（硅基流动 / OpenAI 兼容） |
-| `LLM_BASE_URL` | ✅ | LLM 接口地址，如 `https://api.siliconflow.cn/v1` |
-| `LLM_MODEL` | ✅ | 模型名，如 `deepseek-ai/DeepSeek-V3.2` |
-| `SEEDANCE_API_KEY` | ✅ | 视频生成（火山引擎 Seedance） |
-| `SEEDREAM_API_KEY` | 可选 | 角色图 AI 生成（不填则只能本地上传） |
-| `BACKEND_URL` | 默认 | 后端访问地址，默认 `http://localhost:8000` |
+| Key | Required | Description |
+|-----|----------|-------------|
+| `LLM_API_KEY` | ✅ | LLM text generation (SiliconFlow / OpenAI-compatible) |
+| `LLM_BASE_URL` | ✅ | LLM endpoint, e.g. `https://api.siliconflow.cn/v1` |
+| `LLM_MODEL` | ✅ | Model name, e.g. `deepseek-ai/DeepSeek-V3.2` |
+| `SEEDANCE_API_KEY` | ✅ | Video generation (Volcengine Seedance) |
+| `SEEDREAM_API_KEY` | Optional | Character image AI generation (upload-only if not set) |
+| `BACKEND_URL` | Default | Backend URL, defaults to `http://localhost:8000` |
 
-### 3. 启动
+### 3. Run
 
 ```bash
-# 方式一：一键启动
+# Option 1: One-click start
 chmod +x start.sh && ./start.sh
 
-# 方式二：分别启动
-# 终端 1 - 后端
+# Option 2: Start separately
+# Terminal 1 - Backend
 cd backend && source .venv/bin/activate
 uvicorn backend.main:app --reload --port 8000
 
-# 终端 2 - 前端
+# Terminal 2 - Frontend
 cd frontend && npm run dev
 ```
 
-- 前端：http://localhost:3000
-- 后端 API 文档：http://localhost:8000/docs
+- Frontend: http://localhost:3000
+- Backend API docs: http://localhost:8000/docs
 
 ---
 
-## 核心流程
+## Core Workflow
 
 ```
-1. 新建项目 → 填写剧名、风格、基调
-2. 进入「角色库」→ 添加角色 → 上传 / AI 生成角色参考图（支持多图管理）
-3. 添加分集，填写梗概（支持 AI 批量生成大纲）
-4. 点「生成脚本+分镜」→ AI 流式输出剧本 + 自动拆分分镜 Prompt
-5. （可选）在剧本编辑器或分镜卡片里修改内容
-6. 点「批量生成草稿」→ Seedance 视频实时推送，逐个审核通过/退回
-7. 全部审核通过后点「合成整集」→ FFmpeg 拼接 → 下载 MP4
+1. Create project → Set title, style, tone
+2. Open "Character Library" → Add characters → Upload / AI-generate reference images (multi-image)
+3. Add episodes with outlines (supports AI batch outline generation)
+4. Click "Generate Script + Storyboard" → AI streams script + auto-splits into segment prompts
+5. (Optional) Edit in script editor or segment cards
+6. Click "Batch Generate Drafts" → Seedance videos push in real-time, review each one
+7. All approved → Click "Compose Episode" → FFmpeg concat → Download MP4
 ```
 
 ---
 
-## 主要功能
+## Key Features
 
-### 角色库
-- 支持本地上传 / 文生图(Seedream) / 图生图 三种方式添加角色图
-- 多图管理：设主图、删除单张，缩略条预览
-- 图片以 HTTP URL 存储，Seedance 可直接访问
-- 视频生成时自动注入角色参考图（`role: "reference_image"`，最多 4 张）
+### Character Library
+- Three ways to add images: local upload / text-to-image (Seedream) / image-to-image
+- Multi-image management: set primary, delete individual, thumbnail strip preview
+- Images stored as HTTP URLs, directly accessible by Seedance
+- Auto-injects character reference images during video generation (`role: "reference_image"`, up to 4)
 
-### 脚本 & 分镜
-- LLM 一次生成完整剧本 + 结构化分镜数据
-- SSE 流式打字机效果，实时看到 AI 写作过程
-- 每个分镜独立 Prompt，支持手动编辑后重新生成
-- LLM 智能决定每段视频时长（4-12 秒）
+### Script & Storyboard
+- LLM generates complete script + structured storyboard data in one pass
+- SSE streaming typewriter effect — watch AI write in real-time
+- Each segment has independent prompt, supports manual edit + regeneration
+- LLM intelligently decides video duration per segment (4–12 seconds)
 
-### 视频生成
-- Seedance 1.5 Pro 异步任务 + 轮询状态
-- 分镜状态机：`prompt_ready → draft_pending → drafting → draft_review → done`
-- 支持单个/批量提交，SSE 实时推送进度
-- 审核不通过可退回修改 Prompt 重新生成
+### Video Generation
+- Seedance 1.5 Pro async tasks + status polling
+- Segment state machine: `prompt_ready → draft_pending → drafting → draft_review → done`
+- Single / batch submission, SSE real-time progress push
+- Rejected drafts return to prompt editing for regeneration
 
-### 整集合成
-- 所有分镜 done 后一键合成
-- 自动下载远程视频 → FFmpeg concat → 输出 MP4
-- 合成完成后前端显示下载按钮
+### Episode Composition
+- One-click compose after all segments are done
+- Auto-downloads remote videos → FFmpeg concat → outputs MP4
+- Download button appears in frontend after completion
 
 ---
 
-## 目录结构
+## Project Structure
 
 ```
 AIdrama/
-├── .env.example         # 配置文件示例
+├── .env.example         # Config file template
 ├── .gitignore
-├── start.sh             # 一键启动脚本
-├── 设计文档.md
+├── start.sh             # One-click start script
 ├── backend/
-│   ├── main.py          # FastAPI 入口 + SSE 端点
+│   ├── main.py          # FastAPI entry + SSE endpoints
 │   ├── core/
-│   │   ├── config.py    # 配置项（Pydantic Settings）
+│   │   ├── config.py    # Settings (Pydantic Settings)
 │   │   ├── database.py  # SQLAlchemy + SQLite
-│   │   └── events.py    # 进程内事件总线
-│   ├── models/          # 数据模型（Project / Episode / Segment / Character）
-│   ├── api/             # REST 路由（projects / episodes / segments / characters）
-│   ├── agents/          # 5 个 Agent
-│   │   ├── orchestrator.py  # 编排中心，事件路由
-│   │   ├── script_agent.py  # LLM 脚本生成
-│   │   ├── image_agent.py   # Seedream 图片生成
-│   │   ├── video_agent.py   # Seedance 视频生成
-│   │   └── compose_agent.py # FFmpeg 合成
+│   │   └── events.py    # In-process event bus
+│   ├── models/          # Data models (Project / Episode / Segment / Character)
+│   ├── api/             # REST routes (projects / episodes / segments / characters)
+│   ├── agents/          # 5 Agents
+│   │   ├── orchestrator.py  # Orchestration hub, event routing
+│   │   ├── script_agent.py  # LLM script generation
+│   │   ├── image_agent.py   # Seedream image generation
+│   │   ├── video_agent.py   # Seedance video generation
+│   │   └── compose_agent.py # FFmpeg composition
 │   └── requirements.txt
 ├── frontend/
-│   ├── pages/           # Next.js 页面
-│   │   ├── index.tsx            # 项目列表
-│   │   ├── project/[id].tsx     # 项目详情
-│   │   ├── episode/[id].tsx     # 分集工作台
-│   │   └── characters/[pid].tsx # 角色库
-│   ├── components/      # UI 组件
-│   │   ├── CharacterCard.tsx    # 角色卡（多图画廊）
-│   │   ├── SegmentCard.tsx      # 分镜卡
-│   │   ├── ScriptEditor.tsx     # 剧本编辑器
-│   │   ├── ImageGenPanel.tsx    # 图片生成面板
-│   │   └── EpisodeTimeline.tsx  # 进度时间线
-│   ├── lib/api.ts       # Axios API 客户端
-│   ├── next.config.js   # 代理 /api + /assets → 后端
+│   ├── pages/           # Next.js pages
+│   │   ├── index.tsx            # Project list
+│   │   ├── project/[id].tsx     # Project detail
+│   │   ├── episode/[id].tsx     # Episode workspace
+│   │   └── characters/[pid].tsx # Character library
+│   ├── components/      # UI components
+│   │   ├── CharacterCard.tsx    # Character card (multi-image gallery)
+│   │   ├── SegmentCard.tsx      # Segment card
+│   │   ├── ScriptEditor.tsx     # Script editor
+│   │   ├── ImageGenPanel.tsx    # Image generation panel
+│   │   └── EpisodeTimeline.tsx  # Progress timeline
+│   ├── lib/api.ts       # Axios API client
+│   ├── next.config.js   # Proxy /api + /assets → backend
 │   └── package.json
-└── assets/              # 运行时生成（已 gitignore）
-    ├── chars/           # 角色图片
-    └── output/          # 合成视频
+└── assets/              # Runtime generated (gitignored)
+    ├── chars/           # Character images
+    └── output/          # Composed videos
 ```
 
 ---
 
-## 技术栈
+## Tech Stack
 
-| 层 | 技术 |
-|----|------|
-| 后端 | Python 3.11 + FastAPI + SQLAlchemy + SQLite |
-| 前端 | Next.js 14 + Tailwind CSS |
-| LLM | DeepSeek V3.2 / OpenAI 兼容接口（硅基流动） |
-| 图片生成 | Seedream 3.0（火山引擎，可选） |
-| 视频生成 | Seedance 1.5 Pro（火山引擎） |
-| 视频合成 | FFmpeg（本地） |
-| 实时通信 | Server-Sent Events (SSE) |
+| Layer | Technology |
+|-------|-----------|
+| Backend | Python 3.11 + FastAPI + SQLAlchemy + SQLite |
+| Frontend | Next.js 14 + Tailwind CSS |
+| LLM | DeepSeek V3.2 / OpenAI-compatible (SiliconFlow) |
+| Image Gen | Seedream 3.0 (Volcengine, optional) |
+| Video Gen | Seedance 1.5 Pro (Volcengine) |
+| Video Compose | FFmpeg (local) |
+| Real-time | Server-Sent Events (SSE) |
 
 ---
 
